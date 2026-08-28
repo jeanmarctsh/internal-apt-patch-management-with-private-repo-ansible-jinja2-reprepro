@@ -1,0 +1,60 @@
+# =========================
+# Ansible
+# =========================
+
+
+    # Ansible generated files
+logs/*.log
+*.retry
+
+
+# =========================
+# Secrets / Credentials
+# =========================
+
+# Vault passwords
+.vault_password
+.vault_pass
+
+# Environment files
+.env
+.env.*
+
+# Private keys
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+
+# =========================
+# Temporary files
+# =========================
+
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+
+
+# =========================
+# OS files
+# =========================
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# macOS
+.DS_Store
+
+
+# =========================
+# IDE
+# =========================
+
+.vscode/
+.idea/
