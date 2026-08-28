@@ -1,0 +1,10 @@
+---
+# defaults file for packages
+
+distribution_name: Debian
+deb_packages: false
+common_packages:
+
+  - curl
+  - apache2
+  - htop

@@ -1,0 +1,17 @@
+---
+# tasks file for packages
+
+- name: APT refresh
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3000
+  when: ansible_os_family == "Debian"
+  tags: install_packages
+
+- name: install packages from local repository 
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
+    state: present
+  when:
+    - deb_packages | bool
+    - common_packages | length > 0 
