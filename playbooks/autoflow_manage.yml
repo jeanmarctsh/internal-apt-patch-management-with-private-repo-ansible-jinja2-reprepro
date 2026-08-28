@@ -1,0 +1,14 @@
+---
+- name: execute tasks on autoflows customer
+  hosts: autoflows
+  gather_facts: true
+  become: true
+
+  roles:
+
+    - role: bootsrap_user
+      tags: user
+    - role: ssh_hardening
+      tags: ssh
+    - role: packages
+      tags: install_packages
