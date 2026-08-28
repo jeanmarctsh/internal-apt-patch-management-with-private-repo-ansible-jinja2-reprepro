@@ -1,0 +1,70 @@
+Ansible Configuration Guide
+===========================
+
+This document explains how to create an ansible.cfg file for:
+
+1. A dedicated ansible user (e.g: autoflows)
+2. A complete ansible.cfg configuration for a project used to run Ansible playbooks
+
+Before creating the dedicated user, make sure that the current user is correctly defined in your inventory file (hosts.yml).
+
+Step 1: Configure Ansible for the Initial User (on new linux server)
+
+This step explains how to configure Ansible to connect to a new Linux server using the existing user defined in the inventory,
+before creating the dedicated Ansible user.
+
+
+[defaults]
+inventory = ./inventories/stage/hosts.yml (this is a configuration for staging env)
+roles_path = ./roles
+host_key_checking = True
+private_key_file = ~/.ssh/id_ed25519
+interpreter_python = auto_silent
+log_path = ./logs/ansible.log
+retry_files = False
+
+[privilege_escalation]
+become = True
+become_method = sudo
+
+# Connexion
+[ssh_connection]
+
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+Once Step 1 is completed, please proceed with the project-level Ansible configuration.
+
+# step 2: ansible.cfg file for full project
+
+on this step, Remove the initial user defined in the inventory and configure the dedicated Ansible user in ansible.cfg
+
+[defaults]
+inventory = ./inventories/stage/hosts.yml
+roles_path = ./roles
+remote_user = autoflows
+host_key_checking = True
+private_key_file = ~/.ssh/id_ed25519
+interpreter_python = auto_silent
+log_path = ./logs/ansible.log
+#forks = 2 (This value is only an example; adjust it according to your architecture and workload)
+
+[privilege_escalation]
+become = True
+become_method = sudo
+become_user = root
+become_ask_pass = False
+
+
+# Connexion
+[ssh_connection]
+ssh_args = -o ControlMaster=auto -o ControlPersist=60s -o PasswordAuthentication=no -o PreferredAuthentications=publickey
+timeout = 30
+pipelining = True
+
+
+
+
+
+
