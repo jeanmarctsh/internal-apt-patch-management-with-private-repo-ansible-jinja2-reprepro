@@ -1,0 +1,7 @@
+---
+
+ansible_port: 22
+#ansible_user:
+
+timezone: Africa/Kinshasa
+country: DR_Congo

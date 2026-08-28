@@ -1,0 +1,13 @@
+---
+
+ansible_port: 22
+#ansible_user:
+
+deb_packages: true
+common_packages:
+
+  - curl
+  - apache2
+  - htop
+  - git
+  - time
