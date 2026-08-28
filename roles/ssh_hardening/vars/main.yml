@@ -1,0 +1,7 @@
+---
+# vars file for ssh_hardening
+
+system_owner: "root"
+system_group: "root"
+path_target_configuration: "/etc/ssh/sshd_config/"
+ssh_file_mode: "0600"

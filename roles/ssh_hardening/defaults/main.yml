@@ -1,0 +1,5 @@
+---
+# defaults file for ssh_hardening
+
+file_name: "ssh_hardening.conf"
+non_root_user: "autoflows"

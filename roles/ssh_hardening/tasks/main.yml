@@ -1,0 +1,30 @@
+---
+# tasks file for ssh_hardening
+
+- name: check if ssh is absent and install it 
+  ansible.builtin.apt:
+    name: openssh-server
+    state: present
+
+
+- name: check if ssh is active
+  ansible.builtin.command: systemctl is-active ssh 
+  register: ssh_status
+  changed_when: false
+
+- name: active and restart ssh if inactive
+  ansible.builtin.service:
+    name: ssh 
+    state: started
+    enabled: true
+  when: ssh_status.stdout != "active"
+  notify: restart ssh 
+
+- name: ssh hardening configuration path_file and rules
+  ansible.builtin.template:
+    src: ssh_hardening.conf.j2
+    dest: "{{ path_target_configuration }}/{{ file_name }}"
+    owner: "{{ system_owner }}"
+    group: "{{ system_group }}"
+    mode: "{{ ssh_file_mode  }}"
+  notify: restart ssh 
