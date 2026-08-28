@@ -1,0 +1,10 @@
+---
+# defaults file for bootsrap_user
+# bootsrap_user variables
+
+
+non_root_user: "autoflows"
+user_shell: "/bin/bash"
+visudo_path: "/usr/sbin/visudo"
+sudoers_dir: "/etc/sudoers.d" 
+ssh_public_key_path: "~/.ssh/autoflow_key.pub" # take public key from autoflows server 

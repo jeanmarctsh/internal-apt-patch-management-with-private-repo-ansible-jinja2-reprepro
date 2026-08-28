@@ -1,0 +1,50 @@
+---
+# tasks file for bootsrap_user
+- name: check if python3 is installed
+  ansible.builtin.raw: which python3
+  register: python_check
+  ignore_errors: true
+  changed_when: false
+
+# UPDATE INDEX
+
+- name: "Update packages index (apt update) and Python3 injection"
+  ansible.builtin.raw: apt-get update && apt-get install -y python3
+  when: python_check.rc != 0
+  changed_when: true
+
+# FACTS COLLECTION
+
+- name: "Enable facts collections"
+  ansible.builtin.setup:
+
+# USER CREATION AND MANAGEMENT
+
+- name: "creation of {{ non_root_user }} as Ansible dedicated user."
+  ansible.builtin.user:
+    name: "{{ non_root_user }}"
+    shell: "{{ user_shell }}"
+    create_home: true
+    password: "!"
+
+
+# SSH configuration
+
+- name: "Adding local SSH public key to {{ non_root_user }}"
+  ansible.posix.authorized_key:
+    user: "{{ non_root_user }}"
+    state: present
+    key: "{{ lookup('file', ssh_public_key_path ) }}"
+
+- name: "Configure passwordless sudo for {{non_root_user}} as dedicated user"
+  ansible.builtin.copy:
+    content: "{{ non_root_user }} ALL=(ALL) NOPASSWD:ALL"
+    dest: "{{ sudoers_dir }}/{{ non_root_user }}"
+    mode: '0440'
+    validate: "{{ visudo_path }} -cf %s"
+
+# DEBUG OUTPUTS
+
+- name: User status
+  ansible.builtin.debug:
+    msg: "user {{ non_root_user }} has been created"
