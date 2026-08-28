@@ -3,7 +3,7 @@
 # =========================
 
 
-    # Ansible generated files
+# Ansible generated files
 logs/*.log
 *.retry
 
