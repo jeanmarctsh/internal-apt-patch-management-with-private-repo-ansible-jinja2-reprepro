@@ -78,7 +78,7 @@ Linux client machines are configured to retrieve packages from the private repos
 
 ---
 
-## Structure project
+## Project Structure
 
 ```text
 autoflow_/                 
@@ -104,7 +104,7 @@ autoflow_/
 
 ```
 
-## Pysical architecture
+## Physical architecture
 
 The physical architecture is not fixed and may evolve as the project progresses.
 
@@ -177,6 +177,21 @@ The local repository server is the only component responsible for retrieving pac
 ---
 
 <h1 align="center"> Partie 2: Ansible Command Execution </h1>
+
+Before executing any Ansible commands, make sure the following prerequisites are in place:
+
+    1. Control node 
+
+        - Ansible installed
+        - IP Address configured
+        - OpenSSH client installed
+        - SSH key pair (public and private key)
+    
+    2. Managed node
+
+        - IP address configured
+        - Python 3 installed
+        - OpenSSH server installed
 
 ## Create dedicated user and Test Connectivity 
 
