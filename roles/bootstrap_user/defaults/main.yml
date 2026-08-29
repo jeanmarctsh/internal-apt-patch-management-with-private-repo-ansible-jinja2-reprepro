@@ -3,7 +3,7 @@
 # bootsrap_user variables
 
 
-non_root_user: "autoflows"
+non_root_user: "autoflows" # (e.g: madrid, ansible_user, juan, etc...)
 user_shell: "/bin/bash"
 visudo_path: "/usr/sbin/visudo"
 sudoers_dir: "/etc/sudoers.d" 
