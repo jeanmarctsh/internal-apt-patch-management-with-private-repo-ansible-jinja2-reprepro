@@ -203,15 +203,21 @@ ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --
 
 # Test Connectivity 
 ansible workers -i inventories/stage/hosts.yml -m ping
+
+# install package from local repository
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "install_packages" --limit "autoflows"
 ```
 
 ## Output of the command
 
-![Ansible command output](Images/Create-dedicate-user-and-test-connectivity.png)
+![Ansible command output](Images/dedicated_user-creation.png)
+
+
+![Install packages from local repository](Images/packages_full_install.png)
 
 ---
 
-## ✍️ AUTEUR
+## ✍️ AUTHOR
 - Nom : Ngandu Jean-Marc
 - [![Email](https://img.shields.io/badge/Email-red?style=for-the-badge&logo=gmail)](mailto:jeanmarctshimbombo@gmail.com)
 - [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/jean-marc-ngandu-b60796222)
