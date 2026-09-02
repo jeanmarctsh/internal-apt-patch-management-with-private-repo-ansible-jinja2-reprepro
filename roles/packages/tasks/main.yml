@@ -15,3 +15,8 @@
   when:
     - deb_packages | bool
     - common_packages | length > 0 
+  
+- name: Checking installation 
+
+  ansible.builtin.debug:
+    msg: "packages {{ common_packages }} has been installed on: {{ ansible_host }}"
