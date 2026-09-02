@@ -2,9 +2,8 @@
 # defaults file for packages
 
 distribution_name: Debian
-deb_packages: false
 common_packages:
 
-  - curl
+  - git
   - apache2
   - htop
