@@ -7,18 +7,20 @@
     state: present
 
 
-- name: check if ssh is active
-  ansible.builtin.command: systemctl is-active ssh 
-  register: ssh_status
-  changed_when: false
-
-- name: active and restart ssh if inactive
+- name: Ensure that ssh service is running and enabled
   ansible.builtin.service:
-    name: ssh 
+    name: ssh
     state: started
-    enabled: true
-  when: ssh_status.stdout != "active"
-  notify: restart ssh 
+    enabled: yes
+
+- name: "Ensure that {{ path_target_configuration }} exists"
+  ansible.builtin.file:
+    path: "{{ path_target_configuration }}"
+    state: directory
+    owner: "{{ system_owner }}"
+    group: "{{ system_group }}"
+    mode: "{{ ssh_directory_mode }}"
+
 
 - name: ssh hardening configuration path_file and rules
   ansible.builtin.template:
@@ -27,4 +29,5 @@
     owner: "{{ system_owner }}"
     group: "{{ system_group }}"
     mode: "{{ ssh_file_mode  }}"
+    validate: "{{ ssh_config_validation }}"
   notify: restart ssh 
