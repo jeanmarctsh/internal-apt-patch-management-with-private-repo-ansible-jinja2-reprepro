@@ -206,6 +206,9 @@ ansible workers -i inventories/stage/hosts.yml -m ping
 
 # install package from local repository
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "install_packages" --limit "autoflows"
+
+# apt policy <package name> : check if package x is installed or not
+apt policy time htop apache2 git 
 ```
 
 ## Output of the command
@@ -214,6 +217,9 @@ ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --
 
 
 ![Install packages from local repository](Images/packages_full_install.png)
+
+
+![Packages state: before and after](Images/packages_state_after.png)
 
 ---
 
