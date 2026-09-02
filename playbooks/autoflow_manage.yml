@@ -6,7 +6,7 @@
 
   roles:
 
-    - role: bootsrap_user
+    - role: bootstrap_user
       tags: user
     - role: ssh_hardening
       tags: ssh
