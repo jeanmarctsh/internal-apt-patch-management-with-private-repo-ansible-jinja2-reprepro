@@ -3,5 +3,8 @@
 
 system_owner: "root"
 system_group: "root"
-path_target_configuration: "/etc/ssh/sshd_config/"
+path_target_configuration: "/etc/ssh/sshd_config.d"
+ssh_config_validation: "/bin/sh -c 'cat {{ ssh_main_config_file }} %s | /usr/sbin/sshd -t -f /dev/stdin'"
 ssh_file_mode: "0600"
+ssh_directory_mode: "07550"
+ssh_main_config_file: "/etc/ssh/sshd_config"
