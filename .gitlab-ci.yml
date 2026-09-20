@@ -1,0 +1,75 @@
+
+
+variables:
+  Environnement_STAGING: "Staging"
+  Environnement_PROD: "Prod"
+  Ansible_Image_name: "ghcr.io/ansible-community/community-ee-minimal" 
+  Ansible_Image_Tag: "2.20.6-1"
+
+stages:
+  - Check
+  - Simulate
+  - Execute
+
+# 
+Syntax_check:
+  stage: Check
+  image: "$Ansible_Image_name:$Ansible_Image_Tag"
+
+  before_script:
+  
+    - pip install ansible-lint==26.6.0
+    - ansible-galaxy collection install -r requirements.yml
+    
+  # syntax checking 
+  script:
+
+    - ansible-lint .
+    - ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --syntax-check
+
+Simu_simulate:
+  stage: Simulate
+  environment: "$Environnement_STAGING"
+  image: "$Ansible_Image_name:$Ansible_Image_Tag"
+  needs: ["Syntax_check"]
+  
+
+  # Action to execute before official script
+  before_script:
+
+    - ansible-galaxy collection install -r requirements.yml
+    - chmod 400 "$SSH_PRIVATE_KEY"
+    # test connectivity with ping model
+    - ansible workers -i inventories/stage/hosts.yml -m ping --private-key "$SSH_PRIVATE_KEY"
+       
+  
+  script:
+
+    # playbook execution in silence mode
+    - ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "install_packages" --limit "autoflows" --check --private-key "$SSH_PRIVATE_KEY"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+
+
+
+# Execution of pipeline in real scenario
+Pipeline_Execution:
+
+  image: "$Ansible_Image_name:$Ansible_Image_Tag"
+  stage: Execute
+  environment: "$Environnement_PROD"
+  needs: ["Simu_simulate"]
+    
+  before_script:
+
+    - ansible-galaxy collection install -r requirements.yml
+
+    - chmod 400 "$SSH_PRIVATE_KEY"
+
+  script:
+
+    - ansible-playbook -i inventories/prod/hosts.yml playbooks/autoflow_manage.yml --tags "install_packages" --limit "autoflows" --private-key "$SSH_PRIVATE_KEY"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
