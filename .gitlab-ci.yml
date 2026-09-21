@@ -5,11 +5,24 @@ variables:
   Environnement_PROD: "Prod"
   Ansible_Image_name: "ghcr.io/ansible-community/community-ee-minimal" 
   Ansible_Image_Tag: "2.20.6-1"
+  ANSIBLE_COLLECTIONS_PATH: "$CI_PROJECT_DIR/.ansible/collections"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 stages:
   - Check
   - Simulate
   - Execute
+
+default:
+  interruptible: false
+  cache:
+    key:
+      files:
+        - requirements.yml
+    paths:
+      - .ansible/collections
+      - .cache/pip
+    
 
 # 
 Syntax_check:
@@ -19,13 +32,16 @@ Syntax_check:
   before_script:
   
     - pip install ansible-lint==26.6.0
-    - ansible-galaxy collection install -r requirements.yml
+    - ansible-galaxy collection install -r requirements.yml -p "$ANSIBLE_COLLECTIONS_PATH"
     
   # syntax checking 
   script:
 
     - ansible-lint .
     - ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --syntax-check
+  
+  cache:
+    policy: pull-push
 
 Simu_simulate:
   stage: Simulate
@@ -37,7 +53,7 @@ Simu_simulate:
   # Action to execute before official script
   before_script:
 
-    - ansible-galaxy collection install -r requirements.yml
+    - ansible-galaxy collection install -r requirements.yml -p "$ANSIBLE_COLLECTIONS_PATH"
     - chmod 400 "$SSH_PRIVATE_KEY"
     # test connectivity with ping model
     - ansible workers -i inventories/stage/hosts.yml -m ping --private-key "$SSH_PRIVATE_KEY"
@@ -45,10 +61,12 @@ Simu_simulate:
   
   script:
 
-    # playbook execution in silence mode
+    # playbook execution in silence mode (--check)
     - ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "install_packages" --limit "autoflows" --check --private-key "$SSH_PRIVATE_KEY"
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  cache:
+    policy: pull
 
 
 
@@ -63,7 +81,7 @@ Pipeline_Execution:
     
   before_script:
 
-    - ansible-galaxy collection install -r requirements.yml
+    - ansible-galaxy collection install -r requirements.yml -p "$ANSIBLE_COLLECTIONS_PATH"
 
     - chmod 400 "$SSH_PRIVATE_KEY"
 
@@ -73,3 +91,5 @@ Pipeline_Execution:
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
       when: manual
+  cache:
+    policy: pull
