@@ -55,7 +55,7 @@ Simu_simulate:
 
     - ansible-galaxy collection install -r requirements.yml -p "$ANSIBLE_COLLECTIONS_PATH"
     - chmod 400 "$SSH_PRIVATE_KEY"
-    # test connectivity with ping model
+    # test of connectivity with ping module
     - ansible workers -i inventories/stage/hosts.yml -m ping --private-key "$SSH_PRIVATE_KEY"
        
   
