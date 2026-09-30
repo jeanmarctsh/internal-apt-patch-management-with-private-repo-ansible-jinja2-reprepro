@@ -12,3 +12,5 @@
       tags: ssh
     - role: packages
       tags: install_packages
+    - role: machine-local-apt
+      tags: apt
