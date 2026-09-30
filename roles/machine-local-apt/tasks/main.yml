@@ -30,16 +30,16 @@
 
   ansible.builtin.shell: | 
 
-    gpg --dearmor < "{{temp_file_location}}/{{local_repository_key_name}}" > "{{local_work_path}}/{{gpg_file_name}}"
+    gpg --dearmor < "{{temp_file_location}}/{{local_repository_key_name}}" > "{{path_source}}/{{key_destination}}/{{gpg_file_name}}"
     
   args:
-    creates: "{{local_work_path}}/{{gpg_file_name}}"
+    creates: "{{path_source}}/{{key_destination}}/{{gpg_file_name}}"
 
 
-- name: "fix permission for {{local_work_path}} directory"
+- name: "fix permission for {{gpg_file_name}} "
 
   ansible.builtin.file:
-    path: "{{local_work_path}}/{{gpg_file_name}}"
+    path: "{{path_source}}/{{key_destination}}/{{gpg_file_name}}"
     owner: "{{ system_owner }}"
     group: "{{ system_group }}"
     mode: "{{mode_A}}"
@@ -51,11 +51,11 @@
     state: absent
 
 
-- name: make local repository as trusted for clients machines
+- name: make local repository as trusted for client machines
 
   ansible.builtin.template:
     src: autoflow.list.j2
-    dest: "{{path_source}}/{{key_destination}}/{{file_name}}"
+    dest: "{{path_source}}/{{local_work_path}}/{{file_name}}"
     owner: "{{ system_owner }}"
     group: "{{ system_group }}"
     mode: "{{mode_A}}"
