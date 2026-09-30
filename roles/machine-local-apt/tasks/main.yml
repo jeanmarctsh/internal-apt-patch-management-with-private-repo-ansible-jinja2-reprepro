@@ -1,0 +1,62 @@
+---
+# tasks file for machine-local-apt
+
+
+- name: "download and make sure that {{local_repository_key_name}} won't change as key"
+  ansible.builtin.get_url:
+    url: "{{local_repository_url}}/{{local_repository_key_name}}"
+    dest: "{{temp_file_location}}/{{local_repository_key_name}}"
+    mode: "{{mode_A}}"
+    checksum: "sha256:{{local_repository_url}}/{{repo_checksum_filename}}"
+
+
+- name: "check if {{path_source_filename}} exists"
+  ansible.builtin.stat:
+    path: "{{path_source}}/{{path_source_filename}}"
+  register: sources_file
+
+- name: "save {{path_source_filename}} as backup"
+  ansible.builtin.copy:
+    src: "{{path_source}}/{{path_source_filename}}"
+    dest: "{{path_source}}/{{path_source_filename}}.{{backup}}"
+    remote_src: true
+    owner: "{{ system_owner }}"
+    group: "{{ system_group }}"
+    mode: "{{mode_A}}"
+  when: sources_file.stat.exists
+
+
+- name: "Key conversion to gpg format"
+
+  ansible.builtin.shell: | 
+
+    gpg --dearmor < "{{temp_file_location}}/{{local_repository_key_name}}" > "{{local_work_path}}/{{gpg_file_name}}"
+    
+  args:
+    creates: "{{local_work_path}}/{{gpg_file_name}}"
+
+
+- name: "fix permission for {{local_work_path}} directory"
+
+  ansible.builtin.file:
+    path: "{{local_work_path}}/{{gpg_file_name}}"
+    owner: "{{ system_owner }}"
+    group: "{{ system_group }}"
+    mode: "{{mode_A}}"
+
+
+- name: Delete only if the copy was successfully
+  ansible.builtin.file:
+    path: "{{temp_file_location}}/{{local_repository_key_name}}"
+    state: absent
+
+
+- name: make local repository as trusted for clients machines
+
+  ansible.builtin.template:
+    src: autoflow.list.j2
+    dest: "{{path_source}}/{{key_destination}}/{{file_name}}"
+    owner: "{{ system_owner }}"
+    group: "{{ system_group }}"
+    mode: "{{mode_A}}"
+  notify: update apt cache

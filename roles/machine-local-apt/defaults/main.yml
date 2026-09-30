@@ -1,0 +1,5 @@
+---
+# defaults file for machine-local-apt
+
+file_name: "autoflow.list"
+codename: "jammy"

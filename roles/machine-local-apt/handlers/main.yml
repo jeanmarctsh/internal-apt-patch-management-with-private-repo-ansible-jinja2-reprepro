@@ -1,0 +1,6 @@
+---
+# handlers file for machine-local-apt
+
+- name: update cache apt 
+  ansible.builtin.apt:
+    update_cache: true

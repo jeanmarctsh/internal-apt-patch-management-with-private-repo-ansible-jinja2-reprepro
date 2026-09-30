@@ -1,0 +1,17 @@
+---
+# vars file for machine-local-apt
+
+local_repository_url: "http://192.168.9.120/debian"
+path_source: "/etc/apt"
+repo_checksum_filename: "sha256sum.txt"
+path_source_filename: "sources.list"
+temp_file_location: "/tmp"
+backup: "old"
+local_repository_key_name: "repo-pub.key"
+key_destination: "keyrings"
+local_work_path: "sources.list.d"
+gpg_file_name: "auto.gpg"
+system_owner: "root"
+system_group: "root"
+architecture_system: "amd64"
+mode_A: "0644"
