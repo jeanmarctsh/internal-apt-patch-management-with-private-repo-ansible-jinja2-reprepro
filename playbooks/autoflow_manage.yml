@@ -1,6 +1,6 @@
 ---
 - name: execute tasks on autoflows customer
-  hosts: autoflows
+  hosts: all
   gather_facts: true
   become: true
 
