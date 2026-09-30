@@ -7,7 +7,7 @@
     url: "{{local_repository_url}}/{{local_repository_key_name}}"
     dest: "{{temp_file_location}}/{{local_repository_key_name}}"
     mode: "{{mode_A}}"
-    checksum: "sha256:{{local_repository_url}}/{{repo_checksum_filename}}"
+    checksum: "sha256:{{local_repo_check}}"
 
 
 - name: "check if {{path_source_filename}} exists"
@@ -23,6 +23,13 @@
     owner: "{{ system_owner }}"
     group: "{{ system_group }}"
     mode: "{{mode_A}}"
+  when: sources_file.stat.exists
+
+
+- name: "disable {{path_source_filename}}"
+  ansible.builtin.file:
+    path: "{{path_source}}/{{path_source_filename}}"
+    state: absent
   when: sources_file.stat.exists
 
 
@@ -59,4 +66,5 @@
     owner: "{{ system_owner }}"
     group: "{{ system_group }}"
     mode: "{{mode_A}}"
-  notify: update apt cache
+  notify: update cache apt
+  no_log: true
