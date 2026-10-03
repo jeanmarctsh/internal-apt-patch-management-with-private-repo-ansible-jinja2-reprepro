@@ -1,0 +1,72 @@
+---
+# tasks file for rollback
+
+- name: "check if {{file_name}} in {{path_source}}/{{local_work_path}} exists"
+  ansible.builtin.stat:
+    path: "{{path_source}}/{{local_work_path}}/{{file_name}}"
+  register: local_repo_file
+
+- name: "save {{file_name}} as backup"
+  ansible.builtin.copy:
+    src: "{{path_source}}/{{local_work_path}}/{{file_name}}"
+    dest: "{{path_source}}/{{local_work_path}}/{{file_name}}.{{rollback_backup}}"
+    remote_src: true
+    owner: "{{ system_owner }}"
+    group: "{{ system_group }}"
+    mode: "{{mode_A}}"
+  when: local_repo_file.stat.exists
+  notify: update cache apt 
+  no_log: true
+
+- name: "Disable {{file_name}}"
+  ansible.builtin.file:
+    path: "{{path_source}}/{{local_work_path}}/{{file_name}}"
+    state: absent
+  when: local_repo_file.stat.exists
+
+
+- name: "check if {{gpg_file_name}} exists in {{path_source}}/{{key_destination}}"
+  ansible.builtin.stat:
+    path: "{{path_source}}/{{key_destination}}/{{gpg_file_name}}"
+  register: key_source
+
+- name: "save {{gpg_file_name}} as backup"
+  ansible.builtin.copy:
+    src: "{{path_source}}/{{key_destination}}/{{gpg_file_name}}"
+    dest: "{{path_source}}/{{key_destination}}/{{gpg_file_name}}.{{rollback_backup}}"
+    remote_src: true
+    owner: "{{ system_owner }}"
+    group: "{{ system_group }}"
+    mode: "{{mode_A}}"
+    when: key_source.stat.exists
+
+- name: "check if {{path_source_filename}} exists as initial source file "
+  ansible.builtin.stat:
+    path: "{{path_source}}/{{path_source_filename}}"
+  register: main_file
+
+- name: "check if there's any backup in {{path_source}} with {{rollback_backup}} as extension"
+  ansible.builtin.stat:
+    path: "{{path_source}}/{{path_source_filename}}.{{backup}}"
+  register: backup_file
+
+- name: "restore {{path_source_filename}} as main file if no present"
+  ansible.builtin.copy:
+    src: "{{path_source}}/{{path_source_filename}}.{{rollback_backup}}"
+    dest: "{{path_source}}/{{path_source_filename}}"
+    remote_src: true
+    owner: "{{ system_owner }}"
+    group: "{{ system_group }}"
+    mode: "{{mode_A}}"
+  when: 
+    - not main_file.stat.exists 
+    - backup_file.stat.exists 
+  notify: update cache apt 
+  no_log: true
+
+- name: "critical alert if {{path_source_filename}}} and {{rollback_backup}} as format saved does'nt exist"
+  ansible.builtin.fail:
+    msg: if main file and saved file are not present
+  when:
+    - not main_file.stat.exists 
+    - not backup_file.stat.exists

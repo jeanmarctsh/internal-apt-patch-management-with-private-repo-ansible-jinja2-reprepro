@@ -1,0 +1,12 @@
+---
+# vars file for rollback
+
+path_source: "/etc/apt"
+path_source_filename: "sources.list"
+rollback_backup: "old"
+key_destination: "keyrings"
+local_work_path: "sources.list.d"
+gpg_file_name: "auto.gpg"
+system_owner: "root"
+system_group: "root"
+mode_A: "0644"
