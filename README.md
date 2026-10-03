@@ -96,7 +96,9 @@ autoflow_/
 ├── roles/                          # modular Ansible roles that implement the main configuration and management tasks
 |   ├── bootsrap_user/
 |   ├── packages/
-|   └── ssh_hardening/     
+|   ├── machine-local-apt/
+|   └── ssh_hardening/
+├── Videos/                         # Playbook Demo execution
 ├── .gitignore                      # Defines files and directories that should not be tracked by Git              
 ├── ansible.cfg                     # Defines the project's Ansible configuration (inventory, roles, ssh, privilege escalation)
 └── README.md                       # Provides an overview of the project (problem statement,purpose, workflow, etc...)
@@ -193,7 +195,7 @@ Before executing any Ansible commands, make sure the following prerequisites are
         - Python 3 installed
         - OpenSSH server installed
 
-## Create dedicated user and Test Connectivity 
+## Create dedicated user, Test Connectivity, Securing the repository key checksum with Ansible Vault, Playbook execution etc...
 
 Test connectivity between the Ansible control node and managed Linux clients
 
@@ -209,6 +211,75 @@ ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --
 
 # apt policy <package name> : check if package x is installed or not
 apt policy time htop apache2 git 
+
+# Securing the repository key checksum with Ansible Vault
+
+
+# How to proceed ? 
+
+> On the local repository server (where the HTTP Linux repository was created)
+
+cd /path/to/your/debian/repository && ls
+
+Calculate the SHA256 checksum of the key, and copy only the hash value (not the filename):
+
+sha256sum repo-pub.key
+
+example of the value print on terminal: 7975aa88f905df8eb7083526000945a8975238db416440e254d5366b40345f1d  repo-pub.key
+
+
+> On the Ansible control server
+
+# Adapt the path below to your own project location:
+
+cd /path/to/your/project
+
+# Create a file to store your vault password:
+# echo "your password" > path to store your filename.extension
+
+e.g : echo "your password" > $HOME/.vault_passkey.txt 
+
+# File permission 
+chmod 600 $HOME/.vault_passkey.txt
+
+> ⚠️ Never commit your `.vault_passkey.txt` file or your vault password. Keep it outside the Git repository.
+
+# Export the file so Ansible can use it automatically:
+# export Variable_name=path file location
+
+export ANSIBLE_VAULT_PASSWORD_FILE=$HOME/.vault_passkey.txt 
+
+Encrypt the hash with `ansible-vault`:
+
+ansible-vault encrypt_string 'YOUR_HASH' --name 'your_variable_name'
+
+# Example:
+ansible-vault encrypt_string '7975aa88f905df8eb7083526000945a8975238db416440e254d5366b40345f1d' --name 'local_repo_check'
+
+> Once the encrypted block is printed on screen, copy it entirely and add it to `roles/machine-local-apt/vars/main.yml`:
+
+cd /path/to/your/project
+
+nano roles/machine-local-apt/vars/main.yml
+
+# Playbook execution
+
+**With `export` (recommended for regular use)**
+
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --limit "workers" 
+
+To preview changes during execution, add `--diff`:
+
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --limit "workers" --diff 
+
+**Without `export`, passing the password file directly**
+
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --vault-password-file $HOME/.vault_passkey.txt 
+
+To preview changes during execution, add `--diff`:
+
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --vault-password-file $HOME/.vault_passkey.txt --diff
+
 ```
 
 ## Output of the command
@@ -217,6 +288,8 @@ apt policy time htop apache2 git
 
 
 ![Install packages from local repository](Images/packages_full_install.png)
+
+![Ansible playbook execution output for machine-local-apt role, followed by an SSH connection to verify the result on the target machine](Images/role_machine_local_apt_playbook_execution.png)
 
 
 ![Packages state: before and after](Images/packages_state_after.png)
