@@ -256,7 +256,7 @@ ansible-vault encrypt_string 'YOUR_HASH' --name 'your_variable_name'
 # Example:
 ansible-vault encrypt_string '7975aa88f905df8eb7083526000945a8975238db416440e254d5366b40345f1d' --name 'local_repo_check'
 
-> Once the encrypted block is printed on screen, copy it entirely and add it to `roles/machine-local-apt/vars/main.yml`:
+> Once the encrypted block is printed on screen, copy it entirely and add it to roles/machine-local-apt/vars/main.yml:
 
 cd /path/to/your/project
 
@@ -264,19 +264,19 @@ nano roles/machine-local-apt/vars/main.yml
 
 # Playbook execution
 
-**With `export` (recommended for regular use)**
+With export (recommended for regular use)
 
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --limit "workers" 
 
-To preview changes during execution, add `--diff`:
+To preview changes during execution, add --diff:
 
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --limit "workers" --diff 
 
-**Without `export`, passing the password file directly**
+Without export, passing the password file directly
 
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --vault-password-file $HOME/.vault_passkey.txt 
 
-To preview changes during execution, add `--diff`:
+To preview changes during execution, add --diff:
 
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --vault-password-file $HOME/.vault_passkey.txt --diff
 
