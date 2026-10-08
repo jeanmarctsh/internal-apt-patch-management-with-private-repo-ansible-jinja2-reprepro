@@ -1,6 +1,18 @@
 ---
 # tasks file for ssh_hardening
 
+- name: check mandatory variables and values
+  ansible.builtin.assert:
+    that:
+      - non_root_user is defined
+      - non_root_user | length > 0
+      - non_root_user != "root"
+      - ssh_MaxAuthTries | int >= 1
+      - ssh_MaxAuthTries | int <= 5
+    fail_msg: " non_root_user must be defined and different from root user, ssh_MaxAuthTries must be between 1 and 5 (current value: {{ ssh_MaxAuthTries | default('NOT DEFINED') }})"
+    success_msg: "user expected: {{non_root_user}}, ssh_attempts_expected: {{ssh_MaxAuthTries}} "
+
+
 - name: check if ssh is absent and install it 
   ansible.builtin.apt:
     name: openssh-server
@@ -11,7 +23,7 @@
   ansible.builtin.service:
     name: ssh
     state: started
-    enabled: yes
+    enabled: true
 
 - name: "Ensure that {{ path_target_configuration }} exists"
   ansible.builtin.file:
@@ -24,10 +36,10 @@
 
 - name: ssh hardening configuration path_file and rules
   ansible.builtin.template:
-    src: ssh_hardening.conf.j2
+    src: 00-ssh_hardening.conf.j2
     dest: "{{ path_target_configuration }}/{{ file_name }}"
     owner: "{{ system_owner }}"
     group: "{{ system_group }}"
     mode: "{{ ssh_file_mode  }}"
     validate: "{{ ssh_config_validation }}"
-  notify: restart ssh 
+  notify:  reload ssh

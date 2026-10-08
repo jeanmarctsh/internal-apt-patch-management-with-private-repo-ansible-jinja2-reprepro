@@ -1,5 +1,7 @@
 ---
 # defaults file for ssh_hardening
 
-file_name: "ssh_hardening.conf"
+file_name: "00-ssh_hardening.conf"
 non_root_user: "marco"
+ssh_LogLevel: "VERBOSE"
+ssh_MaxAuthTries: "4"
