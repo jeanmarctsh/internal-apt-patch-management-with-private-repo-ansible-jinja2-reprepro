@@ -286,7 +286,7 @@ To preview changes during execution, add --diff:
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --vault-password-file $HOME/.vault_passkey.txt --diff
 
 
-# Restore original Ubuntu repositories
+# Restore original Ubuntu repositories (test)
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags 'backup' --limit 'workers'
 
 ```
