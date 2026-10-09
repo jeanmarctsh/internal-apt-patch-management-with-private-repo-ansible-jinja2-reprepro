@@ -1,7 +1,7 @@
 ---
 # tasks file for ssh_hardening
 
-- name: check mandatory variables and values
+- name: check mandatory variables and values.
   ansible.builtin.assert:
     that:
       - non_root_user is defined
@@ -13,13 +13,13 @@
     success_msg: "user expected: {{non_root_user}}, ssh_attempts_expected: {{ssh_MaxAuthTries}} "
 
 
-- name: check if ssh is absent and install it 
+- name: check if ssh is absent and install it.
   ansible.builtin.apt:
     name: openssh-server
     state: present
 
 
-- name: Ensure that ssh service is running and enabled
+- name: Ensure that ssh service is running and enabled.
   ansible.builtin.service:
     name: ssh
     state: started
