@@ -1,7 +1,7 @@
 ---
 # tasks file for rollback
 
-- name: "check if {{file_name}} in {{path_source}}/{{local_work_path}} exists"
+- name: "check if {{file_name}} exists in {{path_source}}/{{local_work_path}}"
   ansible.builtin.stat:
     path: "{{path_source}}/{{local_work_path}}/{{file_name}}"
   register: local_repo_file
@@ -38,7 +38,7 @@
     owner: "{{ system_owner }}"
     group: "{{ system_group }}"
     mode: "{{mode_A}}"
-    when: key_source.stat.exists
+  when: key_source.stat.exists
 
 - name: "check if {{path_source_filename}} exists as initial source file "
   ansible.builtin.stat:
@@ -64,7 +64,7 @@
   notify: update cache apt 
   no_log: true
 
-- name: "critical alert if {{path_source_filename}}} and {{rollback_backup}} as format saved does'nt exist"
+- name: "critical alert if {{path_source_filename}} and {{rollback_backup}} as format saved does'nt exist"
   ansible.builtin.fail:
     msg: if main file and saved file are not present
   when:
