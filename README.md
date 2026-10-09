@@ -97,6 +97,7 @@ autoflow_/
 |   ├── bootsrap_user/
 |   ├── packages/
 |   ├── machine-local-apt/
+|   ├── rollback/
 |   └── ssh_hardening/
 ├── Videos/                         # Playbook Demo execution
 ├── .gitignore                      # Defines files and directories that should not be tracked by Git              
@@ -206,6 +207,10 @@ ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --
 # Test Connectivity 
 ansible workers -i inventories/stage/hosts.yml -m ping
 
+# SSH hardening playbook execution (excluding localhost )
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags 'ssh' --limit 'all:!local'
+
+
 # install package from local repository
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "install_packages" --limit "autoflows"
 
@@ -280,6 +285,10 @@ To preview changes during execution, add --diff:
 
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --vault-password-file $HOME/.vault_passkey.txt --diff
 
+
+# Restore original Ubuntu repositories
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags 'backup' --limit 'workers'
+
 ```
 
 ## Output of the command
@@ -293,6 +302,10 @@ ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --
 
 
 ![Packages state: before and after](Images/packages_state_after.png)
+
+![SSH hardening playbook execution on both servers](Images/ssh_hardening_ok.png)
+
+
 
 ---
 
