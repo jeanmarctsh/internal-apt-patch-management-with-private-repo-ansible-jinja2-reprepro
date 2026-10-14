@@ -14,6 +14,7 @@ system_owner: "root"
 system_group: "root"
 architecture_system: "amd64"
 mode_A: "0644"
+backup_directory: "/var/backups"
 local_repo_check: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           34313165616432356132613831376233626266303530626562366435333031326466636339373433

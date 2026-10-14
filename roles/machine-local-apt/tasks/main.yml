@@ -1,6 +1,15 @@
 ---
 # tasks file for machine-local-apt
 
+- name: check if local repository is available
+  ansible.builtin.uri:
+    url: "{{ local_repository_url }}/dists/{{ codename }}/InRelease"
+    status_code: 200
+    timeout: 10
+  register: repo_
+  retries: 3
+  delay: 5 # Every 5 seconds
+  until: repo_ is succeeded
 
 - name: "download and make sure that {{local_repository_key_name}} won't change as key"
   ansible.builtin.get_url:
@@ -10,30 +19,50 @@
     checksum: "sha256:{{local_repo_check}}"
 
 
-- name: "check if {{path_source_filename}} exists"
+- name: " retreive info for {{path_source_filename}} as required file"
   ansible.builtin.stat:
     path: "{{path_source}}/{{path_source_filename}}"
   register: sources_file
+
+- name: "check if the file exist and he's not empty"
+  ansible.builtin.debug:
+    msg: "{{path_source_filename}} as file exist and he's not empty"
+  when: 
+    - sources_file.stat.exists
+    - sources_file.stat.size > 0
 
 - name: "save {{path_source_filename}} as backup"
   ansible.builtin.copy:
     src: "{{path_source}}/{{path_source_filename}}"
     dest: "{{path_source}}/{{path_source_filename}}.{{backup}}"
     remote_src: true
+    force: false
     owner: "{{ system_owner }}"
     group: "{{ system_group }}"
     mode: "{{mode_A}}"
-  when: sources_file.stat.exists
+  when: 
+    - sources_file.stat.exists
+    - sources_file.stat.size > 0
+  
 
-
-- name: "disable {{path_source_filename}}"
-  ansible.builtin.file:
-    path: "{{path_source}}/{{path_source_filename}}"
-    state: absent
-  when: sources_file.stat.exists
+- name: "save {{path_source_filename}} as official ubuntu repository in {{backup_directory}}"
+  ansible.builtin.copy:
+    src: "{{path_source}}/{{path_source_filename}}"
+    dest: "{{backup_directory}}/{{path_source_filename}}"
+    remote_src: true
+    force: false
+    owner: "{{ system_owner }}"
+    group: "{{ system_group }}"
+    mode: "{{mode_A}}"
+  when: 
+    - sources_file.stat.exists
+    - sources_file.stat.size > 0
 
 
 - name: "Key conversion to gpg format"
+
+# Could be implemented using ansible.builtin.command and
+# gpg --output to avoid shell redirection.
 
   ansible.builtin.shell: | 
 
@@ -52,7 +81,7 @@
     mode: "{{mode_A}}"
 
 
-- name: Delete only if the copy was successfully
+- name: remove temporary key
   ansible.builtin.file:
     path: "{{temp_file_location}}/{{local_repository_key_name}}"
     state: absent
@@ -67,4 +96,51 @@
     group: "{{ system_group }}"
     mode: "{{mode_A}}"
   notify: update cache apt
-  no_log: true
+
+- name: "update apt cache now"
+  ansible.builtin.meta: flush_handlers
+
+- name: Check that apt sees the local repository
+  ansible.builtin.command: apt-cache policy
+  register: apt_policy
+  changed_when: false
+  failed_when: >
+    apt_policy.rc != 0 or
+    local_repository_url not in apt_policy.stdout
+
+- name: "check {{ path_source_filename }}.{{ backup }}"
+  ansible.builtin.stat:
+    path: "{{ path_source }}/{{ path_source_filename }}.{{ backup }}"
+  register: backup_check
+
+- name: "check backup in {{ backup_directory }}"
+  ansible.builtin.stat:
+    path: "{{ backup_directory }}/{{ path_source_filename }}"
+  register: backup_dir_check
+
+- name: "stop if backup is missing or empty"
+  ansible.builtin.assert:
+    that:
+      - backup_check.stat.exists
+      - backup_check.stat.size > 0
+      - backup_dir_check.stat.exists
+      - backup_dir_check.stat.size > 0
+    fail_msg: "{{ inventory_hostname }} : invalid backup detected, keeping {{ path_source_filename }} unchanged."
+
+
+- name: "disable {{ path_source_filename }}"
+  ansible.builtin.file:
+    path: "{{ path_source }}/{{ path_source_filename }}"
+    state: absent
+  when:
+    - sources_file.stat.exists
+    - sources_file.stat.size > 0
+    - backup_check.stat.exists
+    - backup_check.stat.size > 0
+    - backup_dir_check.stat.exists
+    - backup_dir_check.stat.size > 0
+  notify: update cache apt
+
+
+- name: "update apt cache with the local repository only"
+  ansible.builtin.meta: flush_handlers
