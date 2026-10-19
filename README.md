@@ -1,7 +1,14 @@
 
-🚧 Project Status: Under Development
+🚧 **Project Status: Under Restructuring and Stabilization**
 
-This project is currently under development. Documentation, features, and configurations may be updated as the project progresses.
+This project is currently undergoing restructuring and testing to improve the reliability and safety of APT repository management and rollback operations.
+
+The APT repository configuration and rollback mechanism are being reviewed and improved to ensure proper backup handling, consistent repository configuration, and reliable restoration of previous states.
+
+Documentation, playbooks, and configurations may change during this process.
+
+**Current status:** APT repository and rollback stabilization and validation in progress.
+
 
 <h1 align="center"> Partie 1: internal-apt-patch-management-with-private-repo-ansible-jinja2-reprepro </h1>
 
