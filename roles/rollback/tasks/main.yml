@@ -47,7 +47,7 @@
 
 - name: "check if there's any backup in {{path_source}} with {{rollback_backup}} as extension"
   ansible.builtin.stat:
-    path: "{{path_source}}/{{path_source_filename}}.{{backup}}"
+    path: "{{path_source}}/{{path_source_filename}}.{{rollback_backup}}"
   register: backup_file
 
 - name: "restore {{path_source_filename}} as main file if no present"
