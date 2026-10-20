@@ -45,7 +45,11 @@
       ansible.builtin.find:
         paths: "{{apt_clean_target_directories}}"
         file_type: file
-        patterns: '*.gpg,*.old'
+        patterns: 
+          - 'autoflow.list.old'
+          - 'autoflow.gpg'
+          - 'auto.gpg'
+          - 'auto.gpg.old'
         hidden: false
         recurse: false
       register: found_apt_files
