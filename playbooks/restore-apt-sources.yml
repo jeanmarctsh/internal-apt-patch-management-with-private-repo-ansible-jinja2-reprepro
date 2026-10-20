@@ -36,11 +36,16 @@
         fail_msg: source file not available
       run_once: true 
 
+    - name: " remove {{path_apt_source_backup_file_extension}}"
+      ansible.builtin.file:
+        path: "{{path_apt_source_backup_file_extension}}"
+        state: absent
+
     - name: Find all files inside apt subdirectories
       ansible.builtin.find:
-        path: "{{apt_clean_target_directories}}"
+        paths: "{{apt_clean_target_directories}}"
         file_type: file
-        patterns: '*.gpg,*old'
+        patterns: '*.gpg,*.old'
         hidden: false
         recurse: false
       register: found_apt_files
