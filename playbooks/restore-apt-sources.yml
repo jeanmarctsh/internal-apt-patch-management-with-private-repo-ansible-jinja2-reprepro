@@ -1,0 +1,78 @@
+--- 
+- name: restore official apt source file on client machines
+  hosts: workers, autoflows
+  become: true # connect as root on target machine 
+  gather_facts: false
+
+  vars:
+    # backup file location on master node
+    apt_source_backup: /home/ansible/sources.list
+    # backup file destination
+    apt_source_destination: /etc/apt/sources.list 
+    # old save file location (which was empty)
+    path_apt_source_backup_file_extension: /etc/apt/sources.list.old
+
+    apt_clean_target_directories:
+      - /etc/apt/sources.list.d
+      - /etc/apt/keyrings
+
+  tasks:
+
+    - name: verify if a backup is available on master
+      ansible.builtin.stat:
+        path: "{{apt_source_backup}}"
+      delegate_to: localhost 
+      become: false # no sudo on master 
+      run_once: true
+      register: apt_backup
+
+    - name: stop the process if the backup isn't available 
+
+      ansible.builtin.assert:
+        that:
+          - apt_backup.stat.exists
+          - apt_backup.stat.isreg
+          - apt_backup.stat.size > 0
+        fail_msg: source file not available
+      run_once: true 
+
+    - name: Find all files inside apt subdirectories
+      ansible.builtin.find:
+        path: "{{apt_clean_target_directories}}"
+        file_type: file
+        patterns: '*.gpg,*old'
+        hidden: false
+        recurse: false
+      register: found_apt_files
+
+
+    - name: Remove filtered files (check previous line)
+      ansible.builtin.file:
+        path: "{{item.path}}"
+        state: absent
+      loop: "{{ found_apt_files.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    - name: restore original Ubuntu repository on client machines
+      ansible.builtin.copy:
+        src: "{{apt_source_backup}}"
+        dest: "{{apt_source_destination}}"
+        owner: root
+        group: root
+        mode: '0644'
+        backup: false
+      notify: apt update cache 
+
+
+    - name: apply hundlers immediatly
+      ansible.builtin.meta: flush_handlers 
+
+    - name: write and check repository
+      ansible.builtin.command: apt-get update 
+      changed_when: false 
+
+  handlers:
+    - name: apt update cache
+      ansible.builtin.apt:
+        update_cache: true        
