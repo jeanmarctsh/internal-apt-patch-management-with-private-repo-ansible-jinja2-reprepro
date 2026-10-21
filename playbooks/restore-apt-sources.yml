@@ -12,9 +12,14 @@
     # old save file location (which was empty)
     path_apt_source_backup_file_extension: /etc/apt/sources.list.old
 
-    apt_clean_target_directories:
+    apt_clean_target_directory_s_l_d:
+
       - /etc/apt/sources.list.d
+
+    apt_clean_target_directory_k:
+
       - /etc/apt/keyrings
+
 
   tasks:
 
@@ -36,30 +41,69 @@
         fail_msg: source file not available
       run_once: true 
 
+    
+    - name: "checking of {{path_apt_source_backup_file_extension}}"
+      ansible.builtin.stat:
+        path: "{{ path_apt_source_backup_file_extension }}"
+      register: empty_backup_file
+
+    
     - name: " remove {{path_apt_source_backup_file_extension}}"
       ansible.builtin.file:
         path: "{{path_apt_source_backup_file_extension}}"
         state: absent
+      when:
+        - empty_backup_file.stat.exists
+        - empty_backup_file.stat.isreg
+        - empty_backup_file.stat.size | int == 0
+
+
+    - name: "Find private apt file source in directory {{apt_clean_target_directory_s_l_d}} "
+      ansible.builtin.find:
+        paths: "{{apt_clean_target_directory_s_l_d}}"
+        file_type: file
+        patterns: 
+          - '^(autoflow\.list|autoflow\.list\.old)$'
+        use_regex: true
+        hidden: false
+        recurse: false
+      register: apt_source_files
+
 
     - name: Find all files inside apt subdirectories
       ansible.builtin.find:
-        paths: "{{apt_clean_target_directories}}"
+        paths: "{{apt_clean_target_directory_k}}"
         file_type: file
         patterns: 
-          - 'autoflow.list.old'
-          - 'autoflow.gpg'
-          - 'auto.gpg'
-          - 'auto.gpg.old'
+           - '^(autoflow\.gpg|auto\.gpg|auto\.gpg\.old)$'
+        use_regex: true
         hidden: false
         recurse: false
-      register: found_apt_files
+      register: found_apt_key
+
+    - name: Display all files selected for cleanup
+      ansible.builtin.debug:
+        msg: >-
+          File: {{ item.path }},
+          size: {{ item.size }} bytes
+      loop: "{{ apt_source_files.files + found_apt_key.files }}"
+      loop_control:
+        label: "{{ item.path }}"
 
 
-    - name: Remove filtered files (check previous line)
+    - name: Remove identified private APT source files
       ansible.builtin.file:
         path: "{{item.path}}"
         state: absent
-      loop: "{{ found_apt_files.files }}"
+      loop: "{{ apt_source_files.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    - name: Remove identified private APT keyring files
+      ansible.builtin.file:
+        path: "{{item.path}}"
+        state: absent
+      loop: "{{ found_apt_key.files }}"
       loop_control:
         label: "{{ item.path }}"
 
@@ -71,17 +115,7 @@
         group: root
         mode: '0644'
         backup: false
-      notify: apt update cache 
 
-
-    - name: apply hundlers immediatly
-      ansible.builtin.meta: flush_handlers 
-
-    - name: write and check repository
-      ansible.builtin.command: apt-get update 
-      changed_when: false 
-
-  handlers:
-    - name: apt update cache
+    - name: execute apt-get update as command
       ansible.builtin.apt:
-        update_cache: true        
+        update_cache: yes     
