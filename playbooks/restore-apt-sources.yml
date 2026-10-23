@@ -6,7 +6,7 @@
 
   vars:
     # backup file location on master node
-    apt_source_backup: /home/ansible/sources.list
+    apt_source_backup:  "{{ lookup('env', 'HOME') }}/sources.list"
     # backup file destination
     apt_source_destination: /etc/apt/sources.list 
     # old save file location (which was empty)
