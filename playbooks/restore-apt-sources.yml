@@ -12,11 +12,11 @@
     # old save file location (which was empty)
     path_apt_source_backup_file_extension: /etc/apt/sources.list.old
 
-    apt_clean_target_directory_s_l_d:
+    apt_sources_dir:
 
       - /etc/apt/sources.list.d
 
-    apt_clean_target_directory_k:
+    apt_keyrings_dir:
 
       - /etc/apt/keyrings
 
@@ -58,9 +58,9 @@
         - empty_backup_file.stat.size | int == 0
 
 
-    - name: "Find private apt file source in directory {{apt_clean_target_directory_s_l_d}} "
+    - name: "Find private apt file source in directory {{apt_sources_dir}} "
       ansible.builtin.find:
-        paths: "{{apt_clean_target_directory_s_l_d}}"
+        paths: "{{apt_sources_dir}}"
         file_type: file
         patterns: 
           - '^(autoflow\.list|autoflow\.list\.old)$'
@@ -72,7 +72,7 @@
 
     - name: Find all files inside apt subdirectories
       ansible.builtin.find:
-        paths: "{{apt_clean_target_directory_k}}"
+        paths: "{{apt_keyrings_dir}}"
         file_type: file
         patterns: 
            - '^(autoflow\.gpg|auto\.gpg|auto\.gpg\.old)$'
@@ -115,6 +115,7 @@
         group: root
         mode: '0644'
         backup: false
+      validate: 'cat %s | grep -q "ubuntu.com"'
 
     - name: execute apt-get update as command
       ansible.builtin.apt:
