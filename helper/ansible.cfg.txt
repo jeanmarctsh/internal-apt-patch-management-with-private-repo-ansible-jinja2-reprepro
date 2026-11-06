@@ -21,7 +21,7 @@ host_key_checking = True
 private_key_file = ~/.ssh/id_ed25519
 interpreter_python = auto_silent
 log_path = ./logs/ansible.log
-retry_files = False
+retry_files_enabled = False
 
 [privilege_escalation]
 become = True
@@ -49,6 +49,7 @@ private_key_file = ~/.ssh/id_ed25519
 interpreter_python = auto_silent
 log_path = ./logs/ansible.log
 #forks = 2 (This value is only an example; adjust it according to your architecture and workload)
+retry_files_enabled = False
 
 [privilege_escalation]
 become = True
