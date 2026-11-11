@@ -5,8 +5,10 @@
   gather_facts: false
 
   vars:
-    # backup file location on master node
-    apt_source_backup:  "{{ lookup('env', 'HOME') }}/sources.list"
+    # backup file location on ansible master node
+    #apt_source_backup:  "{{ lookup('env', 'HOME') }}/sources.list"
+    # backup file location on awx server
+    apt_source_backup: /runner/backup/sources.list
     # backup file destination
     apt_source_destination: /etc/apt/sources.list 
     # old save file location (which was empty)
@@ -38,9 +40,9 @@
           - apt_backup.stat.exists
           - apt_backup.stat.isreg
           - apt_backup.stat.size > 0
+          - apt_backup.stat.readable
         fail_msg: source file not available
       run_once: true 
-
     
     - name: "checking of {{path_apt_source_backup_file_extension}}"
       ansible.builtin.stat:
@@ -115,7 +117,7 @@
         group: root
         mode: '0644'
         backup: false
-      validate: 'cat %s | grep -q "ubuntu.com"'
+        validate: "grep -q 'ubuntu.com' %s"
 
     - name: execute apt-get update as command
       ansible.builtin.apt:
