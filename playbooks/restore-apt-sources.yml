@@ -8,7 +8,7 @@
     # backup file location on ansible master node
     #apt_source_backup:  "{{ lookup('env', 'HOME') }}/sources.list"
     # backup file location on awx server
-    apt_source_backup: /runner/backup/sources.list
+    apt_source_backup: "{{ playbook_dir }}/sources.list.jammy"
     # backup file destination
     apt_source_destination: /etc/apt/sources.list 
     # old save file location (which was empty)

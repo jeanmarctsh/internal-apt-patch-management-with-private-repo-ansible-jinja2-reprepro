@@ -1,0 +1,7 @@
+
+Note:
+__Complete with the official Ubuntu repository configuration__
+
+File location on the Linux host: /etc/apt/sources.list
+
+Save a backup of the current sources.list file.
