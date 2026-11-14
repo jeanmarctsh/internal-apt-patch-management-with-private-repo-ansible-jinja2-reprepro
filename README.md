@@ -1,14 +1,20 @@
 
-🚧 **Project Status: Under Restructuring and Stabilization**
+🚧 **Project Status: Operational – Rollback Role Under Review**
 
-This project is currently undergoing restructuring and testing to improve the reliability and safety of APT repository management and rollback operations.
+The project is operational, with automated APT repository management and Linux configuration using Ansible.
 
-The APT repository configuration and rollback mechanism are being reviewed and improved to ensure proper backup handling, consistent repository configuration, and reliable restoration of previous states.
+**Current improvement:**
 
-Documentation, playbooks, and configurations may change during this process.
+The `rollback` role is currently under review to improve backup handling and ensure reliable restoration of previous APT repository configurations.
 
-**Current status:** APT repository and rollback stabilization and validation in progress.
+**New components added:**
 
+- **AWX:** Centralized Ansible playbook execution and orchestration.
+- **Gitea:** Git repository hosting and source code management.
+
+Documentation, playbooks, and configurations may evolve during this process.
+
+**Current status:** Rollback role stabilization and validation in progress.
 
 <h1 align="center"> Partie 1: internal-apt-patch-management-with-private-repo-ansible-jinja2-reprepro </h1>
 
@@ -293,8 +299,9 @@ To preview changes during execution, add --diff:
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --vault-password-file $HOME/.vault_passkey.txt --diff
 
 
-# Restore original Ubuntu repositories (test)
+# Restore original Ubuntu repositories (still in test)
 ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags 'backup' --limit 'workers'
+
 
 ```
 
@@ -303,14 +310,16 @@ ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --
 ![Ansible command output](Images/dedicated_user-creation.png)
 
 
-![Install packages from local repository](Images/packages_full_install.png)
-
 ![Ansible playbook execution output for machine-local-apt role, followed by an SSH connection to verify the result on the target machine](Images/role_machine_local_apt_playbook_execution.png)
 
 
 ![Packages state: before and after](Images/packages_state_after.png)
 
-![SSH hardening playbook execution on both servers](Images/ssh_hardening_ok.png)
+![AWX and Gitea integration](Images/synchro_ok.png)
+
+![AWX and Gitea integration](Images/awx%20-%20VMware%20Workstation%2013-Nov-26%209_03_50%20AM.png)
+
+![Install packages from local repository on AWX](Images/awx%20-%20VMware%20Workstation%2013-Nov-26%209_13_02%20AM.png)
 
 
 
