@@ -1,331 +1,269 @@
 
-🚧 **Project Status: Operational – Rollback Role Under Review**
+<h1 align="center"> Centralized Linux Patch Management & Infrastructure Automation </h1>
 
-The project is operational, with automated APT repository management and Linux configuration using Ansible.
+## 1. Problem Statement
 
-**Current improvement:**
+Managing Linux systems in an IT infrastructure involves several challenges, particularly in package management, system configuration, security and operational consistency.
 
-The `rollback` role is currently under review to improve backup handling and ensure reliable restoration of previous APT repository configurations.
+Allowing Linux clients to retrieve packages directly from external repositories can make it difficult to control package sources, versions, integrity and distribution.
 
-**New components added:**
+Additionally, managing system configurations and administrative tasks across multiple machines manually can lead to inconsistencies and increase operational workload.
 
-- **AWX:** Centralized Ansible playbook execution and orchestration.
-- **Gitea:** Git repository hosting and source code management.
+User authentication and access management also require centralized control to ensure that only authorized users can access administration tools.
 
-Documentation, playbooks, and configurations may evolve during this process.
+This project addresses these challenges through:
 
-**Current status:** Rollback role stabilization and validation in progress.
+- A private APT repository for controlled package distribution.
+- Ansible automation for Linux configuration and patch management.
+- AWX and Gitea for centralized automation and source code management.
+- Windows Server Active Directory and LDAP for centralized user authentication and access management.
 
-<h1 align="center"> Partie 1: internal-apt-patch-management-with-private-repo-ansible-jinja2-reprepro </h1>
+## 2. Project Overview
 
-## Problem statement 
+This project implements a centralized Linux package management and infrastructure automation environment using Ansible.
 
-Linux package management is an important security and operational component of an IT environment, contributing to the stability, reliability, and proper functioning of its systems.
+Linux clients retrieve approved packages and dependencies from a private APT repository instead of accessing external repositories directly.
 
-Linux packages often require specific dependencies to function correctly. Allowing client machines to install packages directly from external sources such as the Internet can introduce security and operational risks if package sources, versions, integrity, and dependencies are not properly controlled.
+The infrastructure is organized into two environments: **Staging** and **Production**.
 
-To address this challenge, an IT environment can implement a private internal package repository that provides client machines with the required packages and dependencies from a controlled source.
+The lab also integrates AWX, Gitea and Windows Server Active Directory to centralize automation, source code management, authentication and access control.
 
-This approach allows client machines to perform package updates and patch management through the internal repository without directly depending on external package repositories. It provides greater control over package sources and distribution while establishing a more consistent and traceable package management process across the IT environment.
+## 3. Infrastructure Architecture
 
----
+### Global Architecture
 
-## Purpose
-
-Automate package installation and patch management by enabling client machines to retrieve required packages and their dependencies from a private internal repository rather than directly from external sources such as the Internet
-
----
-
-## Project Execution Environment
-
-This project will be executed on linux environment using: 
-
-    1. Linux as the operating system
-    2. Ansible for automation and configuration management
-    3. Reprepro to create and manage a private internal APT repository
-
----
-
-## Project Workflow
-
-Presentation of project workflow:
-
-
-```text
-                  OFFICIAL APT REPOSITORY
-                   (Linux Distribution)
-                            │
-                            │ Component: main
-                            ▼
-                   Package Selection
-                            │
-                            ▼
-                 Dependency Resolution
-                            │
-                            ▼
-              ┌──────────────────────────┐
-              │   PRIVATE APT SERVER     │
-              │        Reprepro          │
-              │                          │
-              │   Internal APT Repository│
-              └────────────┬─────────────┘
-                           │
-                           │ APT
-                           ▼
-                ┌────────────────────────┐
-                │      LINUX CLIENTS     │
-                │                        │
-                │  Staging / Production  │
-                └───────────▲────────────┘
-                            │
-                            │
-                 Configuration & Patching
-                            │
-                    ┌───────┴───────┐
-                    │    Ansible    │
-                    └───────────────┘
-```
-
-As stated in the Purpose section:
-Linux client machines are configured to retrieve packages from the private repository. Ansible automates client configuration and patch management across the staging and production environments. For this project, the main component of the official APT repository will be used as the package source.
-
----
-
-## Project Structure
-
-```text
-autoflow_/                 
-├── helper/                         # Guide for configuring ansible.cfg
-|   └── ansible.cfg.txt                              
-├── Images/                         # project screenshots
-├── inventories/                    # Ansible inventories used to manage the different environments (stage and prod)
-|   ├── group_vars/
-|   ├── prod/   
-|   └── stage/ 
-├── logs/                           # Ansible logs store during playbook execution
-|   
-├── playbooks/                      # Playbook directory with files to manage project ansible roles
-|   └── autoflow_manage.yml
-├── roles/                          # modular Ansible roles that implement the main configuration and management tasks
-|   ├── bootsrap_user/
-|   ├── packages/
-|   ├── machine-local-apt/
-|   ├── rollback/
-|   └── ssh_hardening/
-├── Videos/                         # Playbook Demo execution
-├── .gitignore                      # Defines files and directories that should not be tracked by Git              
-├── ansible.cfg                     # Defines the project's Ansible configuration (inventory, roles, ssh, privilege escalation)
-└── README.md                       # Provides an overview of the project (problem statement,purpose, workflow, etc...)
-                  
-
-```
-
-## Physical architecture
-
-The physical architecture is not fixed and may evolve as the project progresses.
-
-Presentation:
-
+```bash
                          INTERNET
-                            │
-                            │
+                            |
+                            v
                   Official APT Repository
-                       Component: main
-                            │
-                            │
-                            ▼
-                 ┌──────────────────────┐
-                 │   LOCAL APT REPO     │
-                 │       SERVER         │
-                 │      Reprepro        │
-                 │                      │
-                 │ Approved packages    │
-                 │ + dependencies       │
-                 └──────────┬───────────┘
-                            │
-                     Private APT
-                     Repository
-                            │
-                ┌───────────┴───────────┐
-                │                       │
-                ▼                       ▼
-        ┌──────────────┐        ┌──────────────┐
-        │ Linux Client │        │ Linux Client │
-        │   STAGING    │        │ PRODUCTION   │
-        └──────────────┘        └──────────────┘
-                ▲                       ▲
-                │                       │
-                └───────────┬───────────┘
-                            │
-                       Configuration
-                       & Patch Management
-                            │
-                     ┌──────┴──────┐
-                     │   Ansible   │
-                     │ Control Node│
-                     └─────────────┘
+                            |
+                            v
+                   +------------------+
+                   |   PRIVATE APT   |
+                   |   REPOSITORY    |
+                   |    Reprepro     |
+                   +--------+---------+
+                            |
+                         HTTP / APT
+                            |
+                    +-------+-------+
+                    |               |
+                    v               v
+                +-------+       +-------+
+                | STAGE |       |  PROD |
+                | Linux |       | Linux |
+                +---+---+       +---+---+
+                    ^               ^
+                    |               |
+                    +-------+-------+
+                            |
+                         Ansible
+                            |
+                           AWX
+                         /     \
+                        v       v
+                     Gitea    Active
+                             Directory
+                               LDAP
+```
 
-              🚫 Clients → Internet
+### Main Components
 
-Please, follow this link to set up and configure private local repository:
+| Component | Purpose |
+|---|---|
+| Reprepro | Private APT repository management |
+| Linux Clients | Managed systems receiving packages |
+| Ansible | Configuration and automation |
+| AWX | Centralized playbook execution |
+| Gitea | Git repository hosting |
+| Windows Server AD | Centralized identity management |
+| LDAP | Authentication between AD and AWX |
+
+### Main Workflows
+
+- **Package Management:** Official APT Repository → Private Repository → Linux Clients.
+- **Automation:** Gitea → AWX → Ansible → Linux Clients.
+- **Authentication:** Active Directory → LDAP → AWX.
+
+**Package management policy:** Linux clients use the internal repository as their authorized package source. External package retrieval is handled by the repository server.
+
+## 4. Implemented Features
+
+| Area | Features |
+|---|---|
+| APT Management | Private repository, package distribution, dependency management |
+| Security | SHA256 verification, Ansible Vault, SSH hardening |
+| Linux Administration | Dedicated user management, package installation, configuration backup and restoration |
+| Automation | Ansible playbooks and reusable roles |
+| Orchestration | AWX inventories, credentials and job templates |
+| Version Control | Gitea repository hosting and AWX synchronization |
+| Identity Management | Windows Server Active Directory and LDAP authentication |
+| Access Control | AWX users, teams and inventory permissions |
+| Environments | Separate Staging and Production inventories |
+
+## 5. Technologies
+
+| Category | Technologies |
+|---|---|
+| Operating Systems | Ubuntu / Linux, Windows Server |
+| Automation | Ansible |
+| Package Management | APT, Reprepro |
+| Orchestration | AWX |
+| Version Control | Git, Gitea |
+| Authentication | Active Directory, LDAP |
+| Security | SSH, Ansible Vault |
+| Virtualization | VMware Workstation |
+
+## 6. Project Structure
+
+```bash
+autoflow/
+├── helper/
+├── Images/
+├── inventories/
+│   ├── group_vars/
+│   ├── prod/
+│   └── stage/
+├── logs/
+├── playbooks/
+│   └── autoflow_manage.yml
+├── roles/
+│   ├── bootstrap_user/
+│   ├── packages/
+│   ├── machine-local-apt/
+│   ├── rollback/
+│   └── ssh_hardening/
+├── Videos/
+├── .gitignore
+├── ansible.cfg
+└── README.md
+```
+
+## 7. Execution Environment
+
+Ansible manages Linux clients through SSH.
+
+### Prerequisites
+
+| Control Node | Managed Linux Nodes |
+|---|---|
+| Linux operating system | Linux operating system |
+| Ansible installed | Python 3 |
+| OpenSSH client | OpenSSH server |
+| SSH key pair | SSH connectivity |
+
+### Ansible Commands
+
+**Test connectivity**
+
+```bash
+ansible workers -i inventories/stage/hosts.yml -m ping
+```
+
+**Create dedicated user**
+
+```bash
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "user" --limit "workers" -u worker4 -k -K
+```
+
+**Apply SSH hardening**
+
+```bash
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "ssh" --limit "all:!local"
+```
+
+**Configure internal APT repository**
+
+```bash
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --limit "workers"
+```
+
+**Install packages**
+
+```bash
+ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "install_packages" --limit "autoflows"
+```
+
+## 8. AWX & Gitea Integration
+
+Gitea and AWX are integrated to manage project source code and Ansible execution.
+
+| Step | Operation |
+|---|---|
+| 1 | Project repository hosted in Gitea |
+| 2 | AWX synchronizes the repository |
+| 3 | Inventories and credentials configured in AWX |
+| 4 | Job templates created |
+| 5 | Ansible playbooks executed through AWX |
+
+## 9. Windows Server Active Directory & LDAP Integration
+
+Windows Server Active Directory is integrated with AWX through LDAP authentication.
+
+This integration allows centralized user authentication and access management.
+
+### Authentication Workflow
+
+1. A user account is created in Active Directory.
+2. AWX authenticates the user through LDAP.
+3. The AWX administrator assigns the appropriate permissions.
+4. The user accesses authorized AWX resources.
+
+### Access Management
+
+- Centralized user authentication.
+- LDAP integration with AWX.
+- AWX user and team management.
+- Inventory access permissions.
+
+## 10. Demonstrations
+
+### Linux Administration & Ansible
+
+![Dedicated user creation](Images/dedicated_user-creation.png)
+
+### APT Repository Configuration
+
+![APT repository configuration with AWX](Images/awx%20-%20VMware%20Workstation%2013-Nov-26%209_03_50%20AM.png)
+
+### Package Management
+
+![Package installation results](Images/packages_state_after.png)
+
+### AWX & Gitea Integration
+
+![AWX and Gitea synchronization](Images/synchro_ok.png)
+
+### Active Directory & LDAP Integration
+
+![Active Directory user integrated into AWX](Images/LDAP.png)
+
+## 11. Project Status
+
+- **Operational:** Private APT Repository, Ansible Roles, AWX, Gitea and Active Directory / LDAP Integration.
+- **Under Review:** Ansible Rollback Role.
+- **Planned:** Prometheus and Grafana Monitoring.
+
+
+## 12. Related Project
 
 👉 [Private local repository seting up](https://github.com/jeanmarctsh/http-linux-local-repository)
 
----
 
-## Architecture Components
+## Project Evolution
 
-| Component                        | Purpose                                                                                |
-| -------------------------------- | -------------------------------------------------------------------------------------- |
-| **Official APT Repository**      | Provides official Linux packages from the `main` component.                            |
-| **Local Private APT Repository** | Retrieves and stores the required packages and dependencies for internal distribution. |
-| **Linux Client Machines**        | Install and update packages exclusively from the local private repository.             |
-| **Ansible Control Node**         | Automates client configuration and patch management.                                   |
-| **Staging / Production**         | Provides isolated environments for managed Linux clients.                              |
+This project remains open to future improvements, including:
 
-
-## Package Management Policy
-
-Linux client machines have no direct access to external package repositories. APT is configured to use the local private repository as the only package source for installation and updates.
-
-The local repository server is the only component responsible for retrieving packages from the authorized external APT source.
-
----
-
-<h1 align="center"> Partie 2: Ansible Command Execution </h1>
-
-Before executing any Ansible commands, make sure the following prerequisites are in place:
-
-    1. Control node 
-
-        - Ansible installed
-        - IP Address configured
-        - OpenSSH client installed
-        - SSH key pair (public and private key)
-    
-    2. Managed node
-
-        - IP address configured
-        - Python 3 installed
-        - OpenSSH server installed
-
-## Create dedicated user, Test Connectivity, Securing the repository key checksum with Ansible Vault, Playbook execution etc...
-
-Test connectivity between the Ansible control node and managed Linux clients
-
-```bash
-# Create dedicated user
-ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "user" --limit "workers" -u worker4 -k -K
-
-# Test Connectivity 
-ansible workers -i inventories/stage/hosts.yml -m ping
-
-# SSH hardening playbook execution (excluding localhost )
-ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags 'ssh' --limit 'all:!local'
-
-
-# install package from local repository
-ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "install_packages" --limit "autoflows"
-
-# apt policy <package name> : check if package x is installed or not
-apt policy time htop apache2 git 
-
-# Securing the repository key checksum with Ansible Vault
-
-
-# How to proceed ? 
-
-> On the local repository server (where the HTTP Linux repository was created)
-
-cd /path/to/your/debian/repository && ls
-
-Calculate the SHA256 checksum of the key, and copy only the hash value (not the filename):
-
-sha256sum repo-pub.key
-
-example of the value print on terminal: 7975aa88f905df8eb7083526000945a8975238db416440e254d5366b40345f1d  repo-pub.key
-
-
-> On the Ansible control server
-
-# Adapt the path below to your own project location:
-
-cd /path/to/your/project
-
-# Create a file to store your vault password:
-# echo "your password" > path to store your filename.extension
-
-e.g : echo "your password" > $HOME/.vault_passkey.txt 
-
-# File permission 
-chmod 600 $HOME/.vault_passkey.txt
-
-> ⚠️ Never commit your `.vault_passkey.txt` file or your vault password. Keep it outside the Git repository.
-
-# Export the file so Ansible can use it automatically:
-# export Variable_name=path file location
-
-export ANSIBLE_VAULT_PASSWORD_FILE=$HOME/.vault_passkey.txt 
-
-Encrypt the hash with `ansible-vault`:
-
-ansible-vault encrypt_string 'YOUR_HASH' --name 'your_variable_name'
-
-# Example:
-ansible-vault encrypt_string '7975aa88f905df8eb7083526000945a8975238db416440e254d5366b40345f1d' --name 'local_repo_check'
-
-> Once the encrypted block is printed on screen, copy it entirely and add it to roles/machine-local-apt/vars/main.yml:
-
-cd /path/to/your/project
-
-nano roles/machine-local-apt/vars/main.yml
-
-# Playbook execution
-
-With export (recommended for regular use)
-
-ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --limit "workers" 
-
-To preview changes during execution, add --diff:
-
-ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --limit "workers" --diff 
-
-Without export, passing the password file directly
-
-ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --vault-password-file $HOME/.vault_passkey.txt 
-
-To preview changes during execution, add --diff:
-
-ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags "apt" --vault-password-file $HOME/.vault_passkey.txt --diff
-
-
-# Restore original Ubuntu repositories (still in test)
-ansible-playbook -i inventories/stage/hosts.yml playbooks/autoflow_manage.yml --tags 'backup' --limit 'workers'
-
-
-```
-
-## Output of the command
-
-![Ansible command output](Images/dedicated_user-creation.png)
-
-
-![Ansible playbook execution output for machine-local-apt role, followed by an SSH connection to verify the result on the target machine](Images/role_machine_local_apt_playbook_execution.png)
-
-
-![Packages state: before and after](Images/packages_state_after.png)
-
-![AWX and Gitea integration](Images/synchro_ok.png)
-
-![AWX and Gitea integration](Images/awx%20-%20VMware%20Workstation%2013-Nov-26%209_03_50%20AM.png)
-
-![Install packages from local repository on AWX](Images/awx%20-%20VMware%20Workstation%2013-Nov-26%209_13_02%20AM.png)
-
-
+- Rollback role refinement.
+- Prometheus and Grafana monitoring integration.
+- Extension of Ansible automation to additional Linux administration tasks.
+- Further improvements to SSH access controls and credential management.
 
 ---
 
 ## ✍️ AUTHOR
+
 - Nom : Ngandu Jean-Marc
 - [![Email](https://img.shields.io/badge/Email-red?style=for-the-badge&logo=gmail)](mailto:jeanmarctshimbombo@gmail.com)
 - [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/jean-marc-ngandu-b60796222)
