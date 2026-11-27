@@ -1,0 +1,10 @@
+## set up system_rules for host
+
+groups:
+  - name: cpu-nodes-info
+    rules:
+      - record: node:cpu_usage:rate5m
+        expr: |
+          100 * (1 - avg by (instance) (
+            rate(node_cpu_seconds_total{mode="idle"}[5m])
+          ))

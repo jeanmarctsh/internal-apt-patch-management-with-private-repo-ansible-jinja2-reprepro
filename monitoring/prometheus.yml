@@ -1,0 +1,86 @@
+global:
+  scrape_interval: "15s"
+  scrape_timeout: "10s"
+  evaluation_interval: "15s"
+
+rule_files:
+  - "rules/*.yml"
+
+scrape_configs:
+  - job_name: 'prometheus_self_monitoring'
+    static_configs:
+      - targets: ['192.168.9.115:9090']
+        labels:
+          environment: "staging"
+          role: "monitoring"
+          service: "prometheus"
+          os: "linux"
+
+  # Linux HOST(manager)
+  - job_name: 'Linux_manager'
+    static_configs:
+      - targets:
+
+          - "192.168.9.115:9100"
+        labels:
+          environment: "staging"
+          role: "manager"
+          os: "linux"
+
+  # Linux HOST(manager)
+  - job_name: 'awx_server'
+    static_configs:
+      - targets:
+
+          - "192.168.9.118:9100"
+        labels:
+          environment: "staging"
+          role: "awx_server"
+          os: "linux"
+  
+  - job_name: 'HTTP_local_repository'
+    static_configs:
+      - targets:
+
+          - "192.168.9.120:9100"
+        labels:
+          environment: "staging"
+          role: "repo_server"
+          os: "linux"
+
+  - job_name: 'gitea_server'
+    static_configs:
+      - targets:
+
+          - "192.168.9.110:9100"
+        labels:
+          environment: "staging"
+          role: "gitea_server"
+          os: "linux"
+
+  # Linux HOST (worker_nodes)
+  - job_name: 'Linux_workers_nodes'
+    static_configs:
+      - targets:
+          - "192.168.9.50:9100"
+          - "192.168.9.51:9100"
+          - "192.168.9.180:9100"
+          - "192.168.9.182:9100"
+        labels:
+          environment: "staging"
+          role: "worker"
+          os: "linux"
+
+  - job_name: 'docker-containers'
+    static_configs:
+      - targets: ['cadvisor:8080']
+  
+  # containers states (up / down)
+  #- job_name: 'docker-status'
+  #  docker_sd_configs:
+  #    - host: unix:///var/run/docker.sock
+  #      refresh_interval: 15s
+  #  relabel_configs:
+  #    - source_labels: [__meta_docker_container_name]
+  #      target_label: instance
+

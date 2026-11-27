@@ -1,0 +1,7 @@
+## Skipped file(s)
+
+monitoring/.env*
+
+## No skipped file(s)
+
+!monitoring/.env.example
